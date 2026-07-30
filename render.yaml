@@ -1,10 +1,9 @@
 services:
   - type: web
     name: amin-route-backend
-    env: docker
+    runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    region: oregon
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -14,27 +13,24 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: "https://amin-route-frontend.onrender.com"
+        value: "*"
       - key: APP_ENV
         value: production
 
   - type: web
     name: amin-route-frontend
-    env: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    publishPath: ./dist
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
         value: "https://amin-route-backend.onrender.com"
     routes:
       - type: rewrite
-        source: "/*"
+        source: /*
         destination: /index.html
-
 
 databases:
   - name: amin-route-db
     databaseName: amin_route_db
     plan: free
-    region: oregon
