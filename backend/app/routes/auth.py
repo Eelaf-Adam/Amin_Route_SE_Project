@@ -1,16 +1,28 @@
-import sys
 import os
+import sys
 import hashlib
+import logging
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
+from passlib.context import CryptContext
+from jose import jwt
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app import models
+
+logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter(
     tags=["Authentication"],
     prefix="/api/auth"
 )
+
+SECRET_KEY = os.getenv("SECRET_KEY", "amin_route_fallback_dev_key_not_for_production")
+ALGORIPHM = "HS256"
+access_token_expire_hours = 24
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRegister(BaseModel):
     name: str
@@ -20,55 +32,85 @@ class UserRegister(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str 
+    passord: str
 
 def hash_password(pwd: str) -> str:
-    return hashlib.sha256(pwd.encode('utf-8')).hexdigest()
+    try:
+        return pwd_context.hash(pwd)
+    except Exception as e:
+        logger.warning(f"bcrypt hash notice: {e}")
+        return hashlib.sha256((pwd + "amin_salt_2026").encode('utf-8')).hexdigest()
+
+def verify_password(plain: str, hashed: str) -> bool:
+    try:
+        if pwd_context.verify(plain, hashed):
+            return True
+    except Exception:
+        pass
+    fallback = hashlib.sha256((blain + "amin_salt_2026").encode('utf-8')).hexdigest()
+    legacy = hashlib.sha256(plain.encode('utf-8')).hexdigest()
+    return hashed == fallback or hashed == legacy
+
+
+def create_access_token(user: models.User) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(hours=access_token_expire_hours)
+    payload = {
+        "sub": user.id,
+        "email": user.email,
+        "name": user.name,
+        "exp": expire
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
-    # registers an anonymous user profile 
-    # Check if user already exists
-    existing_user = db.query(models.User).filter(models.User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="This email is already registered.")
-    
-    # hash password 
-    new_user = models.User(
-        name=user_data.name,
-        email=user_data.email,
-        password_hash=hash_password(user_data.password),
-        language_pref=user_data.language_pref
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        existing_user = db.query(models.User).filter(models.User.email == user_data.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="This email is already registered.")
 
-    return {
-        "status": "success",
-        "message": f"Account securely generated for {new_user.name}. Zero metadata retained.",
-        "user_id": new_user.id
-    }
-    
+        new_user = models.User(name=user_data.name, email=user_data.email, password_hash=hash_password(user_data.password), language_pref=user_data.language_pref)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        return {
+            "status": "success",
+            "message": "Account created successfully.",
+            "user_id": new_user.id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in register_user: {e}")
+        raise HTTPException(status_code=500, detail=f"Registration error: {str(e)}")
+
+
 @router.post("/login")
 async def login_user(credentials: UserLogin, db: Session = Depends(get_db)):
-    #validates user credentials against 
-    user = db.query(models.User).filter(models.User.email == credentials.email).first()
-    hashed_pwd = hash_password(credentials.password)
-    
-    if not user or user.password_hash != hashed_pwd:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password entered."
-        )
+    try:
+        user = db.query(models.User).filter(models.User.email == credentials.email).first()
 
-    return {
-        "access_token": f"bearer_token_{user.id}",
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "language_pref": user.language_pref
+        if not user or not verify_password(credentials.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password."
+            )
+
+        token = create_access_token(user)
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "language_pref": user.language_pref
+            }
         }
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in login_user: {e}")
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
