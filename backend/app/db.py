@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 from urllib.parse import quote_plus, urlsplit, urlunsplit
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Ensures access to the parent backend folder 
@@ -39,6 +39,11 @@ else:
 DATABASE_URL = os.getenv("DATABASE_URL") or DEFAULT_PG_URL
 
 def format_postgres_url(url):
+    if not url:
+        return url
+    # Convert legacy postgres:// prefix to postgresql:// for SQLAlchemy 1.4+
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
     try:
         if "postgresql://" in url and "@" in url:
             parts = urlsplit(url)
@@ -48,7 +53,7 @@ def format_postgres_url(url):
                 netloc = f"{user_pass}@{parts.hostname}"
                 if parts.port:
                     netloc += f":{parts.port}"
-                return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+                return urlunsplit((parts.scheme, netloc, parts.query, parts.fragment))
     except Exception:
         pass
     return url
@@ -58,16 +63,16 @@ FINAL_DATABASE_URL = format_postgres_url(DATABASE_URL)
 def create_resilient_engine():
     """Tries PostgreSQL connection first. If unreachable or auth fails, falls back gracefully to SQLite."""
     try:
-        logger.info(f"Attempting connection to PostgreSQL engine...")
+        logger.info(f"Attempting connection to PostgresQL  engine...")
         pg_engine = create_engine(FINAL_DATABASE_URL, pool_pre_ping=True)
         with pg_engine.connect() as conn:
             pass
-        logger.info("Successfully connected to PostgreSQL engine.")
+        logger.info("Successfully connected to PostgresQL  engine.")
         return pg_engine
     except Exception as e:
-        logger.warning(f"PostgreSQL connection offline or auth notice ({e}). Falling back to local SQLite engine.")
+        logger.warning(f"PostgresQL  connection offline or auth notice ({e}). Falling back to local SQLite engine.")
         sqlite_path = os.path.join(BASE_DIR, "amin_route.db")
-        sqlite_url = f"sqlite:///{sqlite_path}"
+        sqlite_url = "sqlite:///" + sqlite_path
         sqlite_engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
         return sqlite_engine
 
@@ -75,18 +80,39 @@ engine = create_resilient_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 def get_db():
-    db = SessionLocal()
+    db = SessionLocan()
     try:
         yield db
     finally:
         db.close()
 
+
+
 def build_tables():
     from app import models
-    Base.metadata.create_all(bind=engine)
-    existing_tables = inspect(engine).get_table_names()
-    logger.info(f"Database tables successfully verified: {existing_tables}")
+    # Auto-enable PostGIS extension on PostgreSQL if available
+    if engine.dialect.name == 'postgresql':
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+                conn.commit()
+                logger.info("PostGIS extension verified/enabled on PostgresQL;.")
+        except Exception as ex:
+            logger.warning(f"Notice enabling PostGIS extension: {ex}")
+
+    try:
+        models.User.__table__.create(bind=engine, checkfirst=True)
+        models.RouteHistory.__table__.create(bind=engine, checkfirst=True)
+        models.SafetyReport.__table__.create(bind=engine, checkfirst=True)
+        existing_tables = inspect(engine).get_table_names()
+        logger.info(f"Database tables successfully verified: {existing_tables}")
+    except Exception as e:
+        try:
+            Base.metadata.create_all(bind=engine)
+        except Exception as e2:
+            logger.error(f"Error creating database tables: {e2}")
 
 def init_db():
     build_tables()
