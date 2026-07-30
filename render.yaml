@@ -35,6 +35,5 @@ services:
 databases:
   - name: amin-route-db
     databaseName: amin_route_db
-    user: amin_route_user
     plan: free
     region: oregon
