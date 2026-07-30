@@ -7,10 +7,14 @@ import 'leaflet/dist/leaflet.css'
 
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (let registration of registrations) {
-      registration.unregister();
-    }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => {
+        console.log('✅ ServiceWorker registered for offline support:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('⚠ ServiceWorker registration notice:', err);
+      });
   });
 }
 
