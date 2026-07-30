@@ -1,0 +1,33 @@
+# Environment variables & Secret credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Python Virtual Environments
+myvenv/
+venv/
+.venv/
+env/
+.venv-win/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
