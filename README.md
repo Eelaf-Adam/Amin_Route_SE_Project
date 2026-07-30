@@ -1,8 +1,8 @@
-# 🛡️ Amin Route — Safe Emergency Navigation System
+# 🛡️ Amin Route: Safe Route Navigation System
 
-Amin Route is an offline-first, privacy-focused navigation and incident-reporting web application engineered for emergency routing in conflict-affected or low-connectivity regions.
+Amin Route is a privacy-focused navigation and safe route reporting web application engineered for emergency routing in conflict-affected.
 
-It combines real-time street hazard reporting, PostGIS spatial risk analysis, offline mesh tile caching, and zero-metadata telemetry to ensure user safety and anonymity.
+It combines real-time street hazard reporting, PostGIS spatial risk analysis, and zero-metadata telemetry to ensure user safety and anonymity.
 
 ---
 
@@ -26,7 +26,7 @@ It combines real-time street hazard reporting, PostGIS spatial risk analysis, of
    - Calculates safest vs. fastest navigation paths by cross-checking OpenStreetMap directions against active crowdsourced and PostGIS hazard zones.
    - Interactive turn-by-turn navigation with live progress telemetry and safety clearance badges.
 
-2. **Offline-First & Progressive Web App (PWA)**
+2. **Offline-First & Progressive Web App (PWA) (With limitation, only works local)**
    - **Service Worker Tile Caching (sw.js)**: Caches OpenStreetMap tiles and app shell assets for offline mapping.
    - **IndexedDB Storage (offlineDB.js)**: Stores incident reports and route history locally when operating without internet.
    - **Automatic Resync (OfflineStatus.jsx)**: Automatically synchronizes pending offline reports to the backend as soon as connectivity is restored.
@@ -68,9 +68,9 @@ ender.yaml.
 4. **Apply Blueprint**:
    - Render will automatically parse 
 ender.yaml and provision all 3 required services:
-     - min-route-db (PostgreSQL Database)
-     - min-route-backend (FastAPI Web Service)
-     - min-route-frontend (React SPA + SW PWA Static Site)
+     - amin-route-db (PostgreSQL Database)
+     - amin-route-backend (FastAPI Web Service)
+     - amin-route-frontend (React SPA + SW PWA Static Site)
    - Click **Apply / Deploy Blueprint**.
 5. **Automatic Setup**:
    - Render automatically handles database connections, PostGIS spatial extension creation, table schemas, and demo user seeding!
@@ -88,10 +88,13 @@ pm)
 - **Git**
 
 #### Step 1: Clone the Repository
-
+```bash
+git clone https://github.com/Eelaf-Adam/Amin_Route_SE_Project.git
+cd Amin_Route_SE_Project
+```
 
 #### Step 2: Set Up & Start Backend
-1. Open terminal in the project root and navigate to ackend:
+1. Open terminal in the project root and navigate to Backend:
    
 2. Create and activate a Python virtual environment:
    - **Linux / WSL / macOS**:
@@ -165,8 +168,39 @@ Open [https://amin-route-backend.onrender.com/docs](https://amin-route-backend.o
 ---
 
 ## Project Directory Structure
-
-
+```
+Amin_Route_SE_Project/
+├── backend/
+│   ├── app/
+│   │   ├── proxy/routing.py        # OpenStreetMap safe routing & risk interceptor
+│   │   ├── routes/                 # Auth & Incident Reports API routes
+│   │   ├── utils/privacy.py        # Zero-metadata privacy scrubber middleware
+│   │   ├── db.py                   # Resilient PostGIS / SQLite database engine
+│   │   ├── main.py                 # FastAPI application entrypoint & CORS config
+│   │   ├── models.py               # SQLAlchemy ORM models
+│   │   └── seed.py                 # Demo user & initial database seeder
+│   ├── Dockerfile                  # Backend container definition
+│   └── requirements.txt            # Python dependencies
+│
+├── frontend/
+│   ├── public/
+│   │   ├── manifest.json           # PWA Web App Manifest
+│   │   └── sw.js                   # PWA Service Worker (Network-first & offline fallback)
+│   ├── src/
+│   │   ├── components/             # Auth, Emergency SOS, Map, RoutePlanner, Reports
+│   │   ├── utils/offlineDB.js       # IndexedDB offline storage helper
+│   │   ├── App.jsx                 # Responsive App layout & desktop sidebar
+│   │   └── main.jsx                # PWA SW registration & React root
+│   ├── Dockerfile                  # Frontend multi-stage Nginx container definition
+│   ├── package.json                # Frontend dependencies & scripts
+│   └── vite.config.js              # Vite build configuration
+│
+├── render.yaml                     # Render Blueprint infrastructure definition
+├── docker-compose.yml              # Multi-container local/VPS docker configuration
+├── start.sh / start.bat            # One-click startup scripts
+├── .gitignore                      # Git security & exclusion rules
+└── README.md                       # Documentation
+```
 
 ---
 
