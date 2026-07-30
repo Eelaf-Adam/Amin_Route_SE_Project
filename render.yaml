@@ -23,14 +23,15 @@ services:
     env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    publishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: "https://amin-route-backend.onrender.com"
     routes:
       - type: rewrite
-        source: /(.*)
+        source: "/*"
         destination: /index.html
+
 
 databases:
   - name: amin-route-db
