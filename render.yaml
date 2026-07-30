@@ -33,4 +33,5 @@ services:
 databases:
   - name: amin-route-db
     databaseName: amin_route_db
+    user: aminrouteuser
     plan: free
