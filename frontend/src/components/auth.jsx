@@ -25,7 +25,7 @@ export default function Auth({ onLoginSuccess }) {
     }
     setError('');
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
     try {
       if (mode === 'signup') {
@@ -64,12 +64,18 @@ export default function Auth({ onLoginSuccess }) {
         if (!res.ok) {
           throw new Error(data.detail || 'Invalid email or password');
         }
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token);
+        }
+        const userData = data?.user || {};
         onLoginSuccess({
-          name: data.user.name,
-          email: data.user.email,
-          phone: data.user.phone || '',
-          emergencyContact: data.user.emergencyContact || '',
-          homeAddress: data.user.homeAddress || ''
+          id: userData.id || '',
+          name: userData.name || data?.name || fullName || email.split('@')[0],
+          email: userData.email || email,
+          language_pref: userData.language_pref || 'en',
+          phone: userData.phone || '',
+          emergencyContact: userData.emergencyContact || '',
+          homeAddress: userData.homeAddress || ''
         });
       }
     } catch (err) {
