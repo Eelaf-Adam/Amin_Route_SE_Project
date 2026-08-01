@@ -1,4 +1,4 @@
-# Amin Route — Safe Emergency Navigation System
+# Amin Route: Safe Route Navigation System for Conflict Zone
 
 Amin Route is an offline-first, privacy-focused navigation and incident-reporting web application engineered for emergency routing in conflict-affected or low-connectivity regions.
 
