@@ -114,6 +114,24 @@ export async function saveRouteLocally(route) {
   }
 }
 
+// Fetch all local saved routes
+export async function getAllOfflineRoutes() {
+  try {
+    const db = await openOfflineDB();
+    const tx = db.transaction('route_histories', 'readonly');
+    const store = tx.objectStore('route_histories');
+
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error('Failed to read all offline routes:', err);
+    return [];
+  }
+}
+
 // Sync all pending reports to backend API
 export async function syncPendingReports(baseUrl) {
   const targetBase = baseUrl || import.meta.env?.VITE_API_URL || '';

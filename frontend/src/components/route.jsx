@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigation, MapPin, Shield, Zap, ArrowRight, X, Search, Check, AlertTriangle, RefreshCw } from 'lucide-react';
 import InteractiveMap from './map';
+import { saveRouteLocally } from '../utils/offlineDB';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -136,6 +137,8 @@ export default function RoutePlanner() {
   const calculateRoute = async (origin = startPoint, destination = destPoint) => {
     setLoadingRoute(true);
     setRouteError(null);
+    let calculatedObj = null;
+
     try {
       const url = `${API_BASE}/api/route/plan?start_lng=${origin.lng}&start_lat=${origin.lat}&end_lng=${destination.lng}&end_lat=${destination.lat}`;
       const res = await fetch(url);
@@ -143,6 +146,7 @@ export default function RoutePlanner() {
       const data = await res.json();
       if (data.routes) {
         setRoutesData(data.routes);
+        calculatedObj = data.routes;
       } else {
         throw new Error("No route geometry returned");
       }
@@ -150,7 +154,7 @@ export default function RoutePlanner() {
       console.error("Route planning error:", err);
       setRouteError("Unable to calculate road network route. Using offline route calculation.");
       // Fallback local route structure
-      setRoutesData({
+      calculatedObj = {
         safest: {
           id: 'safest',
           type: 'Safest Route',
@@ -171,9 +175,29 @@ export default function RoutePlanner() {
           description: 'Direct path through central avenue, minor traffic delay reported.',
           path_geometry: [[origin.lng, origin.lat], [destination.lng, destination.lat]]
         }
-      });
+      };
+      setRoutesData(calculatedObj);
     } finally {
       setLoadingRoute(false);
+
+      // Save route to history log
+      if (calculatedObj) {
+        const chosen = calculatedObj.safest || calculatedObj.fastest;
+        const now = new Date();
+        saveRouteLocally({
+          id: `route-${now.getTime()}`,
+          start: origin.name || `${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`,
+          destination: destination.name || `${destination.lat.toFixed(4)}, ${destination.lng.toFixed(4)}`,
+          startPoint: origin,
+          destPoint: destination,
+          date: 'Today',
+          time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          distance: chosen?.distance || '10.5 km',
+          duration: chosen?.time || '15 min',
+          tag: chosen?.type || 'Safest',
+          tagColor: chosen?.badgeColor || 'bg-blue-100 text-blue-700'
+        }).catch(e => console.warn('Local route save notice:', e));
+      }
     }
   };
 

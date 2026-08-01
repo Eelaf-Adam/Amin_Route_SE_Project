@@ -47,6 +47,14 @@ export default function App() {
 
   const isRtl = language === 'ar';
 
+  const handleLogout = () => {
+    const confirmMsg = isRtl ? 'هل أنت تأكد من تسجيل الخروج؟' : 'Are you sure you want to log out?';
+    if (window.confirm(confirmMsg)) {
+      localStorage.removeItem('token');
+      setCurrentUser(null);
+    }
+  };
+
   const navItems = [
     { id: 'home', label: isRtl ? 'الرئيسية' : 'Dashboard', icon: MapPin },
     { id: 'routes', label: isRtl ? 'المسارات' : 'Route Planner', icon: Navigation },
@@ -122,11 +130,12 @@ export default function App() {
               </div>
             </div>
             <button 
-              onClick={() => setCurrentUser(null)}
-              className="text-slate-400 hover:text-red-400 p-1.5 transition cursor-pointer"
-              title="Logout"
+              onClick={handleLogout}
+              className="flex items-center space-x-1.5 rtl:space-x-reverse px-2.5 py-1.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-semibold text-xs transition cursor-pointer flex-shrink-0"
+              title={isRtl ? 'تسجيل الخروج' : 'Logout'}
             >
-              <LogOut size={16} />
+              <LogOut size={14} />
+              <span>{isRtl ? 'تسجيل الخروج' : 'Logout'}</span>
             </button>
           </div>
         </div>

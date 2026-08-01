@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Navigation, 
   MapPin, 
@@ -11,36 +11,45 @@ import {
   X,
   Filter
 } from 'lucide-react';
+import { getAllOfflineRoutes } from '../utils/offlineDB';
 
 export default function RouteHistory({ onSelectRoute }) {
   const [filter, setFilter] = useState('week'); // 'week' | 'all'
   const [toastMessage, setToastMessage] = useState(null);
+  const [offlineRoutes, setOfflineRoutes] = useState([]);
+
+  useEffect(() => {
+    async function loadSavedRoutes() {
+      try {
+        const saved = await getAllOfflineRoutes();
+        if (saved && saved.length > 0) {
+          saved.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+          setOfflineRoutes(saved);
+        }
+      } catch (err) {
+        console.warn("Could not load saved route history:", err);
+      }
+    }
+    loadSavedRoutes();
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Analytics stats matching design
-  const stats = {
-    totalRoutes: 24,
-    distance: '86.5 km',
-    avgSafety: '94%',
-    safeRoutesPct: '89%',
-  };
-
-  // Sample history data
-  const historyList = [
+  // Sample fallback history data if none created yet
+  const sampleList = [
     {
       id: 1,
-      start: 'Kigali Center, Rwanda',
-      destination: 'Nyabugogo Bus Park',
+      start: 'Khartoum Center, Sudan',
+      destination: 'Omdurman Al-Morada District',
       date: 'Today',
       time: '6:45 PM',
-      distance: '8.4 km',
-      duration: '18 min',
+      distance: '11.5 km',
+      duration: '20 min',
       tag: 'Safest',
-      tagColor: 'bg-blue-100 text-blue-700',
+      tagColor: 'bg-emerald-100 text-emerald-700',
     },
     {
       id: 2,
@@ -49,18 +58,27 @@ export default function RouteHistory({ onSelectRoute }) {
       date: 'Yesterday',
       time: '7:45 AM',
       distance: '10.2 km',
-      duration: '20 min',
+      duration: '18 min',
       tag: 'Fastest',
-      tagColor: 'bg-emerald-100 text-emerald-700',
+      tagColor: 'bg-blue-100 text-blue-700',
     },
   ];
+
+  const displayRoutes = offlineRoutes.length > 0 ? offlineRoutes : sampleList;
+
+  const stats = {
+    totalRoutes: displayRoutes.length,
+    distance: `${displayRoutes.reduce((acc, r) => acc + (parseFloat(r.distance) || 10.0), 0).toFixed(1)} km`,
+    avgSafety: '94%',
+    safeRoutesPct: '91%',
+  };
 
   const handleUseRouteAgain = (item) => {
     showToast(`Loading route from "${item.start}" to "${item.destination}"...`);
     if (onSelectRoute) {
       setTimeout(() => {
         onSelectRoute(item);
-      }, 800);
+      }, 600);
     }
   };
 
@@ -83,8 +101,8 @@ export default function RouteHistory({ onSelectRoute }) {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-3xl shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-bold">Safety Reports & Route History</h2>
-            <p className="text-blue-100 text-xs">Your past journeys, safety metrics & logs</p>
+            <h2 className="text-xl font-bold">Route History</h2>
+            <p className="text-blue-100 text-xs">Your past journeys & saved navigation logs</p>
           </div>
           <div className="p-2 bg-white/10 rounded-2xl border border-white/20">
             <Clock size={20} className="text-white" />
@@ -163,7 +181,7 @@ export default function RouteHistory({ onSelectRoute }) {
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Recent Journeys</h3>
 
-        {historyList.map((item) => (
+        {displayRoutes.map((item) => (
           <div key={item.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3 hover:border-blue-200 transition">
             {/* Start and Destination indicator */}
             <div className="space-y-2 border-l-2 border-blue-500 pl-3 ml-1">

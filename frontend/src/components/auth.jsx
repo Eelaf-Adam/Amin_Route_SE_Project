@@ -27,6 +27,19 @@ export default function Auth({ onLoginSuccess }) {
 
     const backendUrl = import.meta.env.VITE_API_URL || '';
 
+    const getErrorMessage = (data, fallback) => {
+      if (!data) return fallback;
+      if (typeof data.detail === 'string') return data.detail;
+      if (Array.isArray(data.detail)) {
+        return data.detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+      }
+      if (typeof data.detail === 'object' && data.detail !== null) {
+        return JSON.stringify(data.detail);
+      }
+      if (typeof data.message === 'string') return data.message;
+      return fallback;
+    };
+
     try {
       if (mode === 'signup') {
         const res = await fetch(`${backendUrl}/api/auth/register`, {
@@ -41,12 +54,17 @@ export default function Auth({ onLoginSuccess }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.detail || 'Failed to create account');
+          throw new Error(getErrorMessage(data, 'Failed to create account'));
         }
-        // Successfully registered user in PostgreSQL
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token);
+        }
+        const userData = data?.user || {};
         onLoginSuccess({
-          name: fullName || email.split('@')[0],
-          email: email,
+          id: userData.id || data?.user_id || '',
+          name: userData.name || fullName || email.split('@')[0],
+          email: userData.email || email,
+          language_pref: userData.language_pref || 'en',
           phone: '',
           emergencyContact: '',
           homeAddress: ''
@@ -62,7 +80,7 @@ export default function Auth({ onLoginSuccess }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.detail || 'Invalid email or password');
+          throw new Error(getErrorMessage(data, 'Invalid email or password'));
         }
         if (data.access_token) {
           localStorage.setItem('token', data.access_token);
@@ -79,7 +97,7 @@ export default function Auth({ onLoginSuccess }) {
         });
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Make sure backend is running.');
+      setError(typeof err === 'string' ? err : (err.message || 'Authentication failed. Make sure backend is running.'));
     }
   };
 

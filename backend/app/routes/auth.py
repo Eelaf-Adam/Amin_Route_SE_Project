@@ -19,8 +19,8 @@ router = APIRouter(
 )
 
 SECRET_KEY = os.getenv("SECRET_KEY", "amin_route_fallback_dev_key_not_for_production")
-ALGORIPHM = "HS256"
-access_token_expire_hours = 24
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 24
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -32,7 +32,7 @@ class UserRegister(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    passord: str
+    password: str
 
 def hash_password(pwd: str) -> str:
     try:
@@ -47,13 +47,13 @@ def verify_password(plain: str, hashed: str) -> bool:
             return True
     except Exception:
         pass
-    fallback = hashlib.sha256((blain + "amin_salt_2026").encode('utf-8')).hexdigest()
+    fallback = hashlib.sha256((plain + "amin_salt_2026").encode('utf-8')).hexdigest()
     legacy = hashlib.sha256(plain.encode('utf-8')).hexdigest()
     return hashed == fallback or hashed == legacy
 
 
 def create_access_token(user: models.User) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(hours=access_token_expire_hours)
+    expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     payload = {
         "sub": user.id,
         "email": user.email,
@@ -69,15 +69,30 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
         if existing_user:
             raise HTTPException(status_code=400, detail="This email is already registered.")
 
-        new_user = models.User(name=user_data.name, email=user_data.email, password_hash=hash_password(user_data.password), language_pref=user_data.language_pref)
+        new_user = models.User(
+            name=user_data.name,
+            email=user_data.email,
+            password_hash=hash_password(user_data.password),
+            language_pref=user_data.language_pref
+        )
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
 
+        token = create_access_token(new_user)
+
         return {
             "status": "success",
             "message": "Account created successfully.",
-            "user_id": new_user.id
+            "access_token": token,
+            "token_type": "bearer",
+            "user_id": new_user.id,
+            "user": {
+                "id": new_user.id,
+                "name": new_user.name,
+                "email": new_user.email,
+                "language_pref": new_user.language_pref
+            }
         }
     except HTTPException:
         raise
