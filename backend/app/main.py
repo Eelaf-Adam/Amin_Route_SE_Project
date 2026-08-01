@@ -2,7 +2,7 @@ import sys
 import os
 from contextlib import asynccontextmanager
 
-# Ensures access to parent backend directory when running main.py directly
+# Ensure parent backend directory is in sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
@@ -15,10 +15,9 @@ from app.proxy import routing
 from app.db import init_db, SessionLocal
 from app.seed import seed_initial_data
 
-# Modern FastAPI lifespan context manager for startup table creation & seeding
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Verify & Create database tables, then seed initial data
+    # Initialize database tables and seed demo data on startup
     try:
         init_db()
         db = SessionLocal()
@@ -29,9 +28,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Startup DB notice: {e}")
     yield
-    # Shutdown logic (if any)
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Amin Route API",
     description="Secure, metadata-scrubbed backend services for offline-first emergency navigation routing.",
@@ -39,10 +36,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add Zero-Metadata Privacy Scrubber Middleware
+# Apply privacy scrubbing middleware
 app.add_middleware(PrivacyScrubberMiddleware)
 
-# Add CORS Middleware for Vercel/Localhost cross-origin requests
+# Configure CORS middleware
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
 origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 
@@ -54,7 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount API routers
+# Register API routes
 app.include_router(auth.router)
 app.include_router(reports.router)  
 app.include_router(routing.router)

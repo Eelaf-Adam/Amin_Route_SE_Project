@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, Text, DateTime, Float
 from geoalchemy2 import Geometry
 from app.db import Base, engine
 
-# Ensures access to parent backend directory when running models.py directly
+# Ensure parent backend directory is in sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)

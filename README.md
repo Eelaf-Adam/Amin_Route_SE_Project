@@ -1,8 +1,8 @@
-# 🛡️ Amin Route — Safe Emergency Navigation System
+# Amin Route — Safe Emergency Navigation System
 
 Amin Route is an offline-first, privacy-focused navigation and incident-reporting web application engineered for emergency routing in conflict-affected or low-connectivity regions.
 
-It combines real-time street hazard reporting, PostGIS spatial risk analysis, offline mesh tile caching, and zero-metadata telemetry to ensure user safety and anonymity.
+It combines real-time street hazard reporting, PostGIS spatial risk analysis, offline tile caching, and zero-metadata telemetry to ensure user safety and anonymity.
 
 ---
 
@@ -10,10 +10,9 @@ It combines real-time street hazard reporting, PostGIS spatial risk analysis, of
 
 1. [Key Features](#key-features)
 2. [Accessing the Live Deployed App](#accessing-the-live-deployed-app)
-3. [Complete Step-by-Step Setup Guide](#complete-step-by-step-setup-guide)
-   - [Option A: One-Click Cloud Deployment on Render (Blueprint)](#option-a-one-click-cloud-deployment-on-render-blueprint)
-   - [Option B: Local Machine Setup (Manual Python + React)](#option-b-local-machine-setup-manual-python--react)
-   - [Option C: Local Docker Setup (docker-compose)](#option-c-local-docker-setup-docker-compose)
+3. [Setup Guide](#setup-guide)
+   - [Option A: Local Machine Setup (Manual Python + React)](#option-a-local-machine-setup-manual-python--react)
+   - [Option B: Local Docker Setup (docker-compose)](#option-b-local-docker-setup-docker-compose)
 4. [Verification & Testing Guide](#verification--testing-guide)
 5. [Project Directory Structure](#project-directory-structure)
 6. [Security & Privacy Guarantees](#security--privacy-guarantees)
@@ -28,14 +27,14 @@ It combines real-time street hazard reporting, PostGIS spatial risk analysis, of
 
 2. **Offline-First & Progressive Web App (PWA)**
    - **Service Worker Tile Caching (sw.js)**: Caches OpenStreetMap tiles and app shell assets for offline mapping.
-   - **IndexedDB Storage (offlineDB.js)**: Stores incident reports and route history locally when operating without internet.
-   - **Automatic Resync (OfflineStatus.jsx)**: Automatically synchronizes pending offline reports to the backend as soon as connectivity is restored.
+   - **IndexedDB Storage (offlineDB.js)**: Stores incident reports and route history locally when operating without internet connection.
+   - **Automatic Resync (OfflineStatus.jsx)**: Automatically synchronizes pending offline reports to the backend once connectivity is restored.
 
 3. **Zero-Metadata Privacy Protection**
    - Integrated PrivacyScrubberMiddleware strips IP addresses, User-Agent strings, and sensitive headers before request processing.
 
 4. **Multi-Device Responsive Design**
-   - Seamlessly adapts across mobile devices (ergonomic bottom navigation bar), tablets, and desktop workstations (collapsible sidebar & multi-column dashboard grid).
+   - Adapts across mobile devices (bottom navigation bar), tablets, and desktop workstations (collapsible sidebar & multi-column dashboard grid).
 
 ---
 
@@ -49,182 +48,159 @@ It combines real-time street hazard reporting, PostGIS spatial risk analysis, of
 
 ---
 
-## Complete Step-by-Step Setup Guide
+## Setup Guide
 
-### Option A: One-Click Cloud Deployment on Render (Blueprint)
+### Option A: Local Machine Setup (Manual Python + React)
 
-This is the easiest, automated production deployment approach using Render's graphical Infrastructure-as-Code Blueprint (
-ender.yaml).
-
-1. **Fork or Push Repository**:
-   Ensure your project repository is pushed to your GitHub account (e.g. https://github.com/YOUR_USERNAME/Amin_Route_SE_Project).
-2. **Open Render Dashboard**:
-   - Go to [render.com](https://render.com) and log in.
-   - Click **New +** in the top-right corner -> Select **Blueprint**.
-3. **Connect Repository**:
-   - Connect your GitHub account and select your Amin_Route_SE_Project repository.
-   - Name: Amin Route | Branch: main | Blueprint Path: 
-ender.yaml.
-4. **Apply Blueprint**:
-   - Render will automatically parse 
-ender.yaml and provision all 3 required services:
-<<<<<<< HEAD
-     - amin-route-db (PostgreSQL Database)
-     - amin-route-backend (FastAPI Web Service)
-     - amin-route-frontend (React SPA + SW PWA Static Site)
-=======
-     - min-route-db (PostgreSQL Database)
-     - min-route-backend (FastAPI Web Service)
-     - min-route-frontend (React SPA + SW PWA Static Site)
->>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
-   - Click **Apply / Deploy Blueprint**.
-5. **Automatic Setup**:
-   - Render automatically handles database connections, PostGIS spatial extension creation, table schemas, and demo user seeding!
-
----
-
-### Option B: Local Machine Setup (Manual Python + React)
-
-Follow these exact steps to run the complete stack locally on your computer (WSL, Linux, macOS, or Windows).
+Follow these steps to run the backend and frontend locally on your machine.
 
 #### Prerequisites
-- **Python 3.10+** (with pip and env)
-- **Node.js 18+** (with 
-pm)
+- **Python 3.10+** (with pip and venv)
+- **Node.js 18+** (with npm)
 - **Git**
 
 #### Step 1: Clone the Repository
-<<<<<<< HEAD
 ```bash
 git clone https://github.com/Eelaf-Adam/Amin_Route_SE_Project.git
 cd Amin_Route_SE_Project
 ```
 
 #### Step 2: Set Up & Start Backend
-1. Open terminal in the project root and navigate to Backend:
-=======
-
-
-#### Step 2: Set Up & Start Backend
-1. Open terminal in the project root and navigate to ackend:
->>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
-   
+1. Open a terminal window in the project root and navigate to the backend directory:
+```bash
+cd backend
+```
 2. Create and activate a Python virtual environment:
    - **Linux / WSL / macOS**:
-     
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
    - **Windows PowerShell**:
-     
+     ```powershell
+     python -m venv venv
+     .\venv\Scripts\Activate.ps1
+     ```
 3. Install backend dependencies:
-   
+```bash
+pip install -r requirements.txt
+```
 4. Start the FastAPI backend server:
-   
-   *The backend will automatically create SQLite database tables if PostgreSQL is not running locally. You will see:*
-   INFO: Uvicorn running on http://0.0.0.0:8000
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+The backend server will run at `http://localhost:8000`.
 
 #### Step 3: Set Up & Start Frontend
-1. Open a **second terminal window** and navigate to the rontend directory:
-   
+1. Open a second terminal window and navigate to the frontend directory:
+```bash
+cd frontend
+```
 2. Install Node dependencies:
-   
+```bash
+npm install
+```
 3. Start the Vite React development server:
-   
+```bash
+npm run dev
+```
 4. Open your browser and navigate to:
-   [http://localhost:5173](http://localhost:5173)
+`http://localhost:5173`
 
 ---
 
-### Option C: Local Docker Setup (docker-compose)
+### Option B: Local Docker Setup (docker-compose)
 
-If you have Docker Desktop installed, you can start the entire stack (PostgreSQL + PostGIS + FastAPI + React) in isolated containers with one command.
+If Docker Desktop is installed on your machine, you can launch the complete stack with Docker Compose.
 
-1. Ensure Docker Desktop is running.
-2. In the project root directory, run:
-   
-The command 'docker-compose' could not be found in this WSL 2 distro.
-We recommend to activate the WSL integration in Docker Desktop settings.
-
-For details about using Docker Desktop with WSL 2, visit:
-
-https://docs.docker.com/go/wsl2/
-3. Access your local application:
-   - **Frontend App**: [http://localhost:5173](http://localhost:5173)
-   - **Backend API**: [http://localhost:8000](http://localhost:8000)
-   - **Interactive API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-4. To stop the containers:
-   
-The command 'docker-compose' could not be found in this WSL 2 distro.
-We recommend to activate the WSL integration in Docker Desktop settings.
-
-For details about using Docker Desktop with WSL 2, visit:
-
-https://docs.docker.com/go/wsl2/
+1. In the project root directory, run:
+```bash
+docker-compose up --build
+```
+2. Access the local services:
+   - **Frontend App**: `http://localhost:5173`
+   - **Backend API**: `http://localhost:8000`
+   - **API Documentation**: `http://localhost:8000/docs`
+3. To stop the containers:
+```bash
+docker-compose down
+```
 
 ---
 
 ## Verification & Testing Guide
 
 ### 1. Interactive API Documentation (/docs)
-Open [https://amin-route-backend.onrender.com/docs](https://amin-route-backend.onrender.com/docs) (or http://localhost:8000/docs locally) to view and test all FastAPI endpoints directly in Swagger UI.
+Open `http://localhost:8000/docs` (or the live backend docs URL) to test all FastAPI endpoints directly in Swagger UI.
 
 ### 2. User Authentication
-- Click **Sign In** on the frontend and enter demo credentials:
-  - **Email:** demo@aminroute.org
-  - **Password:** password123
+- Click **Sign In** on the frontend and enter demo credentials (`demo@aminroute.org` / `password123`).
 - Or register a new account under **Sign Up** to verify password hashing and JWT token issuance.
 
-### 3. PWA Offline Access & Airplane Mode Testing
-1. Open the frontend URL in your browser or mobile device.
-2. Wait a few seconds for the PWA Service Worker to initialize (Console log: ✅ ServiceWorker registered for offline support).
-3. Disconnect your Wi-Fi or enable **Airplane Mode**.
-4. Refresh the page: the app will open offline, render cached OpenStreetMap tiles, and allow submitting offline hazard reports that automatically resync once reconnected!
+### 3. Offline Access & Resync Testing
+1. Open the frontend in your browser.
+2. Allow the PWA Service Worker to initialize.
+3. Disconnect network connectivity or enable Airplane mode.
+4. Refresh the page to verify offline mapping tiles and local incident report saving in IndexedDB.
+5. Re-enable network connectivity to verify automatic syncing of pending reports.
 
 ---
 
 ## Project Directory Structure
-<<<<<<< HEAD
+
 ```
 Amin_Route_SE_Project/
 ├── backend/
 │   ├── app/
-│   │   ├── proxy/routing.py        # OpenStreetMap safe routing & risk interceptor
-│   │   ├── routes/                 # Auth & Incident Reports API routes
-│   │   ├── utils/privacy.py        # Zero-metadata privacy scrubber middleware
-│   │   ├── db.py                   # Resilient PostGIS / SQLite database engine
-│   │   ├── main.py                 # FastAPI application entrypoint & CORS config
-│   │   ├── models.py               # SQLAlchemy ORM models
-│   │   └── seed.py                 # Demo user & initial database seeder
-│   ├── Dockerfile                  # Backend container definition
+│   │   ├── proxy/
+│   │   │   └── routing.py          # OpenStreetMap safe routing & risk interceptor
+│   │   ├── routes/
+│   │   │   ├── auth.py             # User registration & authentication routes
+│   │   │   └── reports.py          # Incident reports API routes
+│   │   ├── utils/
+│   │   │   └── privacy.py          # Zero-metadata privacy scrubber middleware
+│   │   ├── db.py                   # Database connection engine (PostgreSQL / SQLite)
+│   │   ├── main.py                 # FastAPI application entrypoint & CORS middleware
+│   │   ├── models.py               # SQLAlchemy ORM database models
+│   │   └── seed.py                 # Seed initial data and demo user
+│   ├── check_users.py              # CLI utility to inspect user database records
+│   ├── check_users.sql             # SQL query helper script
+│   ├── Dockerfile                  # Backend Docker container definition
 │   └── requirements.txt            # Python dependencies
 │
 ├── frontend/
 │   ├── public/
-│   │   ├── manifest.json           # PWA Web App Manifest
-│   │   └── sw.js                   # PWA Service Worker (Network-first & offline fallback)
+│   │   ├── manifest.json           # PWA web app manifest
+│   │   └── sw.js                   # Service Worker tile caching
 │   ├── src/
-│   │   ├── components/             # Auth, Emergency SOS, Map, RoutePlanner, Reports
-│   │   ├── utils/offlineDB.js       # IndexedDB offline storage helper
-│   │   ├── App.jsx                 # Responsive App layout & desktop sidebar
-│   │   └── main.jsx                # PWA SW registration & React root
-│   ├── Dockerfile                  # Frontend multi-stage Nginx container definition
-│   ├── package.json                # Frontend dependencies & scripts
-│   └── vite.config.js              # Vite build configuration
+│   │   ├── components/             # React UI components (Auth, Map, RoutePlanner, Reports, SOS, History)
+│   │   ├── utils/
+│   │   │   └── offlineDB.js        # IndexedDB client-side database helper
+│   │   ├── App.jsx                 # Main layout & navigation container
+│   │   ├── App.css                 # Application custom styles
+│   │   ├── index.css               # Global Tailwind CSS imports
+│   │   └── main.jsx                # React application root entrypoint
+│   ├── Dockerfile                  # Frontend Docker container definition
+│   ├── eslint.config.js            # ESLint configuration
+│   ├── index.html                  # HTML entrypoint
+│   ├── nginx.conf                  # Nginx production configuration
+│   ├── package.json                # Frontend package dependencies & scripts
+│   ├── postcss.config.js           # PostCSS setup for Tailwind CSS
+│   ├── tailwind.config.js          # Tailwind CSS theme configuration
+│   └── vite.config.cjs             # Vite build configuration
 │
-├── render.yaml                     # Render Blueprint infrastructure definition
-├── docker-compose.yml              # Multi-container local/VPS docker configuration
-├── start.sh / start.bat            # One-click startup scripts
-├── .gitignore                      # Git security & exclusion rules
+├── render.yaml                     # Infrastructure configuration
+├── docker-compose.yml              # Docker Compose multi-container configuration
+├── start.sh / start.bat            # Environment startup scripts
+├── .gitignore                      # Git exclusion rules
 └── README.md                       # Documentation
 ```
-=======
-
-
->>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
 
 ---
 
 ## Security & Privacy Guarantees
 
 - **Zero IP or Telemetry Logging**: Request middleware strips IP addresses and User-Agent headers at the gateway boundary.
-- **Salted Password Hashing**: Hashed using industry-standard bcrypt algorithm.
+- **Salted Password Hashing**: Passwords hashed using bcrypt and SHA-256 fallback.
 - **JWT Authorization**: Stateless authorization via signed HTTP Bearer tokens.
 - **Data Autonomy**: Users can manage or delete their account data and route logs at any time.

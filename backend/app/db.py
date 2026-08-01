@@ -5,12 +5,12 @@ from urllib.parse import quote_plus, urlsplit, urlunsplit
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Ensures access to the parent backend folder 
+# Ensure parent backend directory is in sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-# Load environment variables strictly from backend/.env
+# Load environment variables from .env
 try:
     from dotenv import load_dotenv
     env_file = os.path.join(BASE_DIR, '.env')
@@ -23,14 +23,13 @@ except ImportError:
 
 logger = logging.getLogger("uvicorn.error")
 
-# PostgreSQL connection parameters read strictly from environment with clean fallbacks
+# PostgreSQL credentials and connection configuration
 DB_USER = os.getenv("POSTGRES_USER") or "postgres"
 DB_PASS = os.getenv("POSTGRES_PASSWORD") or "secure_password_2026"
 DB_HOST = os.getenv("POSTGRES_HOST") or "localhost"
 DB_PORT = os.getenv("POSTGRES_PORT") or "5432"
 DB_NAME = os.getenv("POSTGRES_DB") or "amin_route_db"
 
-# Build URL safely from environment variables
 if DB_PASS:
     DEFAULT_PG_URL = f"postgresql://{DB_USER}:{quote_plus(DB_PASS)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 else:
@@ -41,7 +40,6 @@ DATABASE_URL = os.getenv("DATABASE_URL") or DEFAULT_PG_URL
 def format_postgres_url(url):
     if not url:
         return url
-    # Convert legacy postgres:// prefix to postgresql:// for SQLAlchemy 1.4+
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
     try:
@@ -61,16 +59,16 @@ def format_postgres_url(url):
 FINAL_DATABASE_URL = format_postgres_url(DATABASE_URL)
 
 def create_resilient_engine():
-    """Tries PostgreSQL connection first. If unreachable or auth fails, falls back gracefully to SQLite."""
+    """Create PostgreSQL engine with fallback to local SQLite."""
     try:
-        logger.info(f"Attempting connection to PostgresQL  engine...")
+        logger.info("Attempting connection to PostgreSQL engine...")
         pg_engine = create_engine(FINAL_DATABASE_URL, pool_pre_ping=True)
         with pg_engine.connect() as conn:
             pass
-        logger.info("Successfully connected to PostgresQL  engine.")
+        logger.info("Successfully connected to PostgreSQL engine.")
         return pg_engine
     except Exception as e:
-        logger.warning(f"PostgresQL  connection offline or auth notice ({e}). Falling back to local SQLite engine.")
+        logger.warning(f"PostgreSQL connection unavailable ({e}). Falling back to local SQLite engine.")
         sqlite_path = os.path.join(BASE_DIR, "amin_route.db")
         sqlite_url = "sqlite:///" + sqlite_path
         sqlite_engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})

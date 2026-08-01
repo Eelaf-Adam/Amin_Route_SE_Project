@@ -41,10 +41,10 @@ async def get_reports(db: Session = Depends(get_db)):
 
     results = []
     for r in reports:
-        # Default fallback Kigali coordinates
-        coords = [30.0619, -1.9441]
+        # Default fallback coordinates
+        coords = [32.5301, 15.5895]
         
-        # Safely extract coordinates from PostGIS geometry or String
+        # Extract coordinates from PostGIS geometry or string format
         if hasattr(r, 'location') and r.location is not None:
             try:
                 if hasattr(r.location, 'data'):
