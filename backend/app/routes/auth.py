@@ -62,16 +62,19 @@ def create_access_token(user: models.User) -> str:
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+from sqlalchemy import func
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     try:
-        existing_user = db.query(models.User).filter(models.User.email == user_data.email).first()
+        clean_email = user_data.email.lower().strip()
+        existing_user = db.query(models.User).filter(func.lower(models.User.email) == clean_email).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="This email is already registered.")
 
         new_user = models.User(
-            name=user_data.name,
-            email=user_data.email,
+            name=user_data.name.strip(),
+            email=clean_email,
             password_hash=hash_password(user_data.password),
             language_pref=user_data.language_pref
         )
@@ -104,7 +107,8 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login")
 async def login_user(credentials: UserLogin, db: Session = Depends(get_db)):
     try:
-        user = db.query(models.User).filter(models.User.email == credentials.email).first()
+        clean_email = credentials.email.lower().strip()
+        user = db.query(models.User).filter(func.lower(models.User.email) == clean_email).first()
 
         if not user or not verify_password(credentials.password, user.password_hash):
             raise HTTPException(

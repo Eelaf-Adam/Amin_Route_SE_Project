@@ -98,21 +98,16 @@ def build_tables():
             with engine.connect() as conn:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
                 conn.commit()
-                logger.info("PostGIS extension verified/enabled on PostgresQL;.")
+                logger.info("PostGIS extension verified/enabled on PostgreSQL.")
         except Exception as ex:
             logger.warning(f"Notice enabling PostGIS extension: {ex}")
 
     try:
-        models.User.__table__.create(bind=engine, checkfirst=True)
-        models.RouteHistory.__table__.create(bind=engine, checkfirst=True)
-        models.SafetyReport.__table__.create(bind=engine, checkfirst=True)
+        Base.metadata.create_all(bind=engine)
         existing_tables = inspect(engine).get_table_names()
         logger.info(f"Database tables successfully verified: {existing_tables}")
     except Exception as e:
-        try:
-            Base.metadata.create_all(bind=engine)
-        except Exception as e2:
-            logger.error(f"Error creating database tables: {e2}")
+        logger.error(f"Error creating database tables: {e}")
 
 def init_db():
     build_tables()
