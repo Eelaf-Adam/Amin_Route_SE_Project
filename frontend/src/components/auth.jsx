@@ -25,7 +25,7 @@ export default function Auth({ onLoginSuccess }) {
     }
     setError('');
 
-    const backendUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || 'https://amin-route-backend.onrender.com';
+    const backendUrl = import.meta.env.VITE_API_URL || '';
 
     try {
       if (mode === 'signup') {

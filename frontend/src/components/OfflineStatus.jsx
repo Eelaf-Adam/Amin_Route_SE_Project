@@ -21,7 +21,7 @@ export default function OfflineStatus() {
     if (isSyncing) return;
     setIsSyncing(true);
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || '';
+      const baseUrl = import.meta.env?.VITE_API_URL || '';
       const result = await syncPendingReports(baseUrl);
       await checkPending();
       if (result.syncedCount > 0) {

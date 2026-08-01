@@ -39,7 +39,7 @@ export default function SafetyReports() {
   const [gettingGps, setGettingGps] = useState(false);
 
   const getApiUrl = () => {
-    return import.meta.env?.VITE_API_URL || import.meta.env?.VITE_BACKEND_URL || import.meta.env?.VITE_API_BASE_URL || 'https://amin-route-backend.onrender.com';
+    return import.meta.env?.VITE_API_URL || '';
   };
 
   const fetchReports = async () => {

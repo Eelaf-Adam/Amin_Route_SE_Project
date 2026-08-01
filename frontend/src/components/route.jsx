@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navigation, MapPin, Shield, Zap, ArrowRight, X, Search, Check, AlertTriangle, RefreshCw } from 'lucide-react';
 import InteractiveMap from './map';
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || 'https://amin-route-backend.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // Default initial origin & destination (Sudan defaults)
 const DEFAULT_START = {

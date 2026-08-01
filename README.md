@@ -1,8 +1,8 @@
-# 🛡️ Amin Route: Safe Route Navigation System
+# 🛡️ Amin Route — Safe Emergency Navigation System
 
-Amin Route is a privacy-focused navigation and safe route reporting web application engineered for emergency routing in conflict-affected.
+Amin Route is an offline-first, privacy-focused navigation and incident-reporting web application engineered for emergency routing in conflict-affected or low-connectivity regions.
 
-It combines real-time street hazard reporting, PostGIS spatial risk analysis, and zero-metadata telemetry to ensure user safety and anonymity.
+It combines real-time street hazard reporting, PostGIS spatial risk analysis, offline mesh tile caching, and zero-metadata telemetry to ensure user safety and anonymity.
 
 ---
 
@@ -26,7 +26,7 @@ It combines real-time street hazard reporting, PostGIS spatial risk analysis, an
    - Calculates safest vs. fastest navigation paths by cross-checking OpenStreetMap directions against active crowdsourced and PostGIS hazard zones.
    - Interactive turn-by-turn navigation with live progress telemetry and safety clearance badges.
 
-2. **Offline-First & Progressive Web App (PWA) (With limitation, only works local)**
+2. **Offline-First & Progressive Web App (PWA)**
    - **Service Worker Tile Caching (sw.js)**: Caches OpenStreetMap tiles and app shell assets for offline mapping.
    - **IndexedDB Storage (offlineDB.js)**: Stores incident reports and route history locally when operating without internet.
    - **Automatic Resync (OfflineStatus.jsx)**: Automatically synchronizes pending offline reports to the backend as soon as connectivity is restored.
@@ -68,9 +68,15 @@ ender.yaml.
 4. **Apply Blueprint**:
    - Render will automatically parse 
 ender.yaml and provision all 3 required services:
+<<<<<<< HEAD
      - amin-route-db (PostgreSQL Database)
      - amin-route-backend (FastAPI Web Service)
      - amin-route-frontend (React SPA + SW PWA Static Site)
+=======
+     - min-route-db (PostgreSQL Database)
+     - min-route-backend (FastAPI Web Service)
+     - min-route-frontend (React SPA + SW PWA Static Site)
+>>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
    - Click **Apply / Deploy Blueprint**.
 5. **Automatic Setup**:
    - Render automatically handles database connections, PostGIS spatial extension creation, table schemas, and demo user seeding!
@@ -88,6 +94,7 @@ pm)
 - **Git**
 
 #### Step 1: Clone the Repository
+<<<<<<< HEAD
 ```bash
 git clone https://github.com/Eelaf-Adam/Amin_Route_SE_Project.git
 cd Amin_Route_SE_Project
@@ -95,6 +102,12 @@ cd Amin_Route_SE_Project
 
 #### Step 2: Set Up & Start Backend
 1. Open terminal in the project root and navigate to Backend:
+=======
+
+
+#### Step 2: Set Up & Start Backend
+1. Open terminal in the project root and navigate to ackend:
+>>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
    
 2. Create and activate a Python virtual environment:
    - **Linux / WSL / macOS**:
@@ -168,6 +181,7 @@ Open [https://amin-route-backend.onrender.com/docs](https://amin-route-backend.o
 ---
 
 ## Project Directory Structure
+<<<<<<< HEAD
 ```
 Amin_Route_SE_Project/
 ├── backend/
@@ -201,6 +215,10 @@ Amin_Route_SE_Project/
 ├── .gitignore                      # Git security & exclusion rules
 └── README.md                       # Documentation
 ```
+=======
+
+
+>>>>>>> a01c107 (fix: resolve live DB sync issues, SessionLocal typo, and standardize VITE_API_URL)
 
 ---
 

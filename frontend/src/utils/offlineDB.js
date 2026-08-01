@@ -115,7 +115,8 @@ export async function saveRouteLocally(route) {
 }
 
 // Sync all pending reports to backend API
-export async function syncPendingReports(baseUrl = import.meta.env?.VITE_API_BASE_URL || '') {
+export async function syncPendingReports(baseUrl) {
+  const targetBase = baseUrl || import.meta.env?.VITE_API_URL || '';
   const pending = await getPendingReports();
   if (!pending.length) return { syncedCount: 0 };
 
@@ -124,7 +125,7 @@ export async function syncPendingReports(baseUrl = import.meta.env?.VITE_API_BAS
 
   for (const report of pending) {
     try {
-      const endpoint = `${baseUrl}/api/reports/`.replace(/([^:]\/)\/+/g, '$1');
+      const endpoint = `${targetBase.replace(/\/+$/, '')}/api/reports/`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
